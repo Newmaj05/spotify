@@ -7,11 +7,8 @@ Created on Thu Jun 25 20:47:18 2020
 
 import spotipy
 import pandas as pd
-import time, requests, base64, sys, os
 import cred 
-from spotipy.oauth2 import SpotifyClientCredentials
 from spotipy.oauth2 import SpotifyOAuth
-from pprint import pprint
 ###https://github.com/plamere/spotipy/tree/master/examples
 ###https://developer.spotify.com/documentation/web-api/reference/#/
 ###https://developer.spotify.com/documentation/general/guides/authorization/
