@@ -19,9 +19,11 @@ from pprint import pprint
 
 
 #spotify web api
-
+#specify redirect url in variable, ensure that it is identical to what has been specified on the Spotify Developer App
 redirect_uri = 'http://localhost:8889/callback/'
+#specify wide range of scopes
 scope = "user-library-read playlist-read-collaborative playlist-read-private playlist-modify-public"
+#configure authorization using spotipy library
 sp = spotipy.Spotify(auth_manager=SpotifyOAuth(client_id=cred.client_id,
                                                client_secret=cred.client_secret,
                                                redirect_uri=redirect_uri, scope=scope))
