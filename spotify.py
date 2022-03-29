@@ -23,24 +23,33 @@ from pprint import pprint
 redirect_uri = 'http://localhost:8889/callback/'
 #specify wide range of scopes
 scope = "user-library-read playlist-read-collaborative playlist-read-private playlist-modify-public"
-#configure authorization using spotipy library
+#configure authorization using spotipy library, uses values from the cred.py file
 sp = spotipy.Spotify(auth_manager=SpotifyOAuth(client_id=cred.client_id,
                                                client_secret=cred.client_secret,
                                                redirect_uri=redirect_uri, scope=scope))
- 
+
+#get all the users playlists and store in a variable. Is JSON
 results = sp.user_playlists(cred.user_id)
 
 playlist_id = None
- 
 
-playlist_details = []
+#function to go through the data and return just the names and the playlist ID in an array
+def playlist_names_ids(data):
+    playlist_details = []
+    
+    for i in data['items']:
+        name = i['name']
+        ids = i['id']
+        playlist_details.append([name,ids])
+    return playlist_details
 
-for i in results['items']:
-    name = i['name']
-    ids = i['id']
-    playlist_details.append([name,ids])
+playlist_details = playlist_names_ids(results)
 
+#store the playlist id in variable
+andrew_api_playlist = '3cEQcPotnho81A9sBSZyJG'
 
+#function to gather the track from the playlist
+#taken from - https://medium.com/analytics-vidhya/profiling-songs-on-spotify-using-cluster-analysis-185535598ebd
 def getTrackIDs(user, playlist_id):
     ids = []
     playlist = sp.user_playlist(user, playlist_id)
@@ -49,6 +58,9 @@ def getTrackIDs(user, playlist_id):
         ids.append(track['id'])
     return ids
 
+
+#gather additional details from the tracks in the playlist
+#taken from - https://medium.com/analytics-vidhya/profiling-songs-on-spotify-using-cluster-analysis-185535598ebd
 def getTrackFeatures(id):
   meta = sp.track(id)
   features = sp.audio_features(id)
@@ -76,25 +88,29 @@ def getTrackFeatures(id):
   return track
 
 
-ids = getTrackIDs(cred.user_id, '3cEQcPotnho81A9sBSZyJG')
+ids = getTrackIDs(cred.user_id, andrew_api_playlist)
 
+#identify the tracks from their ids and gather the additional details about the tracks
 def track_identify(ids):
     tracks = []
     for i in range(len(ids)):
-      time.sleep(.5)
+      #time.sleep(.5)
       track = getTrackFeatures(ids[i])
       tracks.append(track)
     return tracks
 
 track_ids = track_identify(ids)
 
-#'Andrew API Playlist', '3cEQcPotnho81A9sBSZyJG'
-
+#read the list of songs downloaded from the shazam library
 song_list = pd.read_csv(r"C:\Python\spotify\shazamlibrary.csv")
 
+#create a new array with the just the artist and the title of the track
 song_names = song_list[['Title','Artist']]
 song_names = song_names.to_numpy()
 
+#function that searches for the track based on the artist and song title and restricts to just the first result
+#this then identifies some of the other details such as artist, album and spotify id and uri required to add into playlists
+#splits results into tuple [0] containing the song details, and [1] just the track ids
 def spotify_song_check(songs):
     song_details = []
     track_ids_list = []
@@ -118,12 +134,16 @@ def spotify_song_check(songs):
 
 songs = spotify_song_check(song_names)
 
-shazam_id = '09io9OdgOrojkRMndXTW8n'
-shazam_uri = "spotify:playlist:09io9OdgOrojkRMndXTW8n"
 
+#create variables for the shazam playlist in spotify, taken from the cred.py file
+shazam_id = cred.shazam_id
+shazam_uri = cred.shazam_uri
+
+#gather the track details for current songs in the shazam playlist
 shazam_ids = getTrackIDs(cred.user_id, shazam_id)
 shazam_songs = track_identify(shazam_ids)
 
+#function will check the track ids between the songs in the shazam list, and the tracks that are currently in the spotify playlist
 def track_checker(song_list,playlist_list):
     new_list = []
     for song in song_list:
@@ -137,9 +157,11 @@ check_songs = track_checker(songs[1],shazam_ids)
 # create dataset
 shazam_df = pd.DataFrame(shazam_songs , columns = ['name', 'album', 'artist', 'release_date', 'length', 'popularity', 'danceability', 'acousticness', 'danceability', 'energy', 'instrumentalness', 'liveness', 'loudness', 'speechiness', 'tempo', 'time_signature'])
 #shazam_df.to_csv("spotify.csv", sep = ',')
+#split the dataset to just show the track name and artist, create an array
 current_songs_in_shazam = shazam_df[['name','artist']]
 current_songs_in_shazam = current_songs_in_shazam.to_numpy()
 
+#function that will add any songs that are missing from the spotify playlist, or skip if no songs are to be added
 def add_songs_playlist(playlist,songs):
     if not songs:
         print("No Songs to add to playlist")
