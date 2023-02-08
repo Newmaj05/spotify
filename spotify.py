@@ -134,7 +134,6 @@ songs = spotify_song_check(song_names)
 
 #create variables for the shazam playlist in spotify, taken from the cred.py file
 shazam_id = cred.shazam_id
-shazam_id = "3cEQcPotnho81A9sBSZyJG"
 shazam_uri = cred.shazam_uri
 
 #gather the track details for current songs in the shazam playlist
