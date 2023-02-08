@@ -99,7 +99,7 @@ def track_identify(ids):
 track_ids = track_identify(ids)
 
 #read the list of songs downloaded from the shazam library
-song_list = pd.read_csv(r"C:\Python\spotify\shazamlibrary.csv")
+song_list = pd.read_csv(r"C:\Python\spotify\shazamlibrary.csv", skiprows=[0])
 
 #create a new array with the just the artist and the title of the track
 song_names = song_list[['Title','Artist']]
@@ -134,6 +134,7 @@ songs = spotify_song_check(song_names)
 
 #create variables for the shazam playlist in spotify, taken from the cred.py file
 shazam_id = cred.shazam_id
+shazam_id = "3cEQcPotnho81A9sBSZyJG"
 shazam_uri = cred.shazam_uri
 
 #gather the track details for current songs in the shazam playlist
